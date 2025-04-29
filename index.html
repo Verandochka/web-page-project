@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Data Viewer</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="center-container">
+        <div class="filters">
+            <label for="brand-select">Brand:</label>
+            <select id="brand-select">
+                <option value="all">All</option>
+            </select>
+
+            <label for="model-select">Model:</label>
+            <select id="model-select" disabled>
+                <option value="all">All</option>
+            </select>
+
+            <label for="year-select">Year:</label>
+            <select id="year-select" disabled>
+                <option value="all">All</option>
+            </select>
+        </div>
+
+        <button id="fetch-json-btn">Load Filtered Data</button>
+
+        <table id="car-table" class="hidden">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
