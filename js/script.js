@@ -7,7 +7,7 @@ const tableBody = document.querySelector('#car-table tbody');
 let carData = {}; // Змінна для збереження JSON-даних
 
 // Завантаження JSON і заповнення випадаючих списків
-fetch('js/sample.json')
+fetch('js/image_sources.json')
     .then(response => response.json())
     .then(data => {
         carData = data;
