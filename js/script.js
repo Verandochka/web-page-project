@@ -1,110 +1,126 @@
+const jsonSelect = document.getElementById('json-select');
 const brandSelect = document.getElementById('brand-select');
 const modelSelect = document.getElementById('model-select');
 const yearSelect = document.getElementById('year-select');
 const fetchButton = document.getElementById('fetch-json-btn');
 const tableBody = document.querySelector('#car-table tbody');
+const modal = document.getElementById('modal');
+const modalImage = document.getElementById('modal-image');
+const closeModal = document.getElementById('close-modal');
 
 let carData = {}; // Змінна для збереження JSON-даних
 
-// Завантаження JSON і заповнення випадаючих списків
-fetch('js/image_sources.json')
-    .then(response => response.json())
-    .then(data => {
-        carData = data;
+// Функція для завантаження JSON і оновлення фільтрів
+function loadJsonData(jsonFile) {
+    fetch(`js/${jsonFile}`)
+        .then(response => response.json())
+        .then(data => {
+            carData = data;
 
-        // Отримання унікальних брендів
-        const brands = new Set();
+            // Оновлення списку брендів
+            const brands = new Set();
+            Object.keys(carData).forEach(key => {
+                const [brand] = key.split('/');
+                brands.add(brand);
+            });
+
+            brandSelect.innerHTML = '<option value="all">All</option>';
+            Array.from(brands).sort().forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
+
+            modelSelect.innerHTML = '<option value="all">All</option>';
+            yearSelect.innerHTML = '<option value="all">All</option>';
+            modelSelect.disabled = true;
+            yearSelect.disabled = true;
+        })
+        .catch(error => console.error('Error loading JSON:', error));
+}
+
+// Завантаження початкового JSON
+loadJsonData(jsonSelect.value);
+
+// Зміна JSON-файлу
+jsonSelect.addEventListener('change', () => {
+    loadJsonData(jsonSelect.value);
+});
+
+// Увімкнення вибору моделі при зміні бренду
+brandSelect.addEventListener('change', () => {
+    const selectedBrand = brandSelect.value;
+    modelSelect.innerHTML = '<option value="all">All</option>';
+    yearSelect.innerHTML = '<option value="all">All</option>';
+
+    if (selectedBrand !== 'all') {
+        const models = new Set();
+        const years = new Map();
+
         Object.keys(carData).forEach(key => {
-            const [brand] = key.split('/');
-            brands.add(brand);
+            const [brand, model, year] = key.split('/');
+            if (brand === selectedBrand) {
+                models.add(model);
+                if (!years.has(year)) {
+                    years.set(year, new Set());
+                }
+                years.get(year).add(model);
+            }
         });
 
-        // Заповнення списку брендів (у алфавітному порядку)
-        Array.from(brands).sort().forEach(brand => {
+        Array.from(models).sort().forEach(model => {
             const option = document.createElement('option');
-            option.value = brand;
-            option.textContent = brand;
-            brandSelect.appendChild(option);
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
         });
 
-        // Увімкнення вибору моделі при зміні бренду
-        brandSelect.addEventListener('change', () => {
-            const selectedBrand = brandSelect.value;
-            modelSelect.innerHTML = '<option value="all">All</option>'; // Очищення списку моделей
-            yearSelect.innerHTML = '<option value="all">All</option>'; // Очищення списку років
-
-            if (selectedBrand !== 'all') {
-                const models = new Set();
-                const years = new Map(); // Використовуємо Map для зв'язку років із моделями
-
-                Object.keys(carData).forEach(key => {
-                    const [brand, model, year] = key.split('/');
-                    if (brand === selectedBrand) {
-                        models.add(model);
-                        if (!years.has(year)) {
-                            years.set(year, new Set());
-                        }
-                        years.get(year).add(model); // Додаємо модель до відповідного року
-                    }
-                });
-
-                // Заповнення списку моделей (у алфавітному порядку)
-                Array.from(models).sort().forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model;
-                    option.textContent = model;
-                    modelSelect.appendChild(option);
-                });
-
-                // Заповнення списку років (тільки якщо є моделі для цього року)
-                Array.from(years.keys()).sort().forEach(year => {
-                    if (years.get(year).size > 0) { // Перевіряємо, чи є моделі для цього року
-                        const option = document.createElement('option');
-                        option.value = year;
-                        option.textContent = year;
-                        yearSelect.appendChild(option);
-                    }
-                });
-
-                modelSelect.disabled = false;
-                yearSelect.disabled = false;
-            } else {
-                modelSelect.disabled = true;
-                yearSelect.disabled = true;
+        Array.from(years.keys()).sort().forEach(year => {
+            if (years.get(year).size > 0) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
             }
         });
 
-        // Увімкнення вибору року при зміні моделі
-        modelSelect.addEventListener('change', () => {
-            const selectedBrand = brandSelect.value;
-            const selectedModel = modelSelect.value;
-            yearSelect.innerHTML = '<option value="all">All</option>'; // Очищення списку років
+        modelSelect.disabled = false;
+        yearSelect.disabled = false;
+    } else {
+        modelSelect.disabled = true;
+        yearSelect.disabled = true;
+    }
+});
 
-            if (selectedModel !== 'all') {
-                const years = new Set();
+// Увімкнення вибору року при зміні моделі
+modelSelect.addEventListener('change', () => {
+    const selectedBrand = brandSelect.value;
+    const selectedModel = modelSelect.value;
+    yearSelect.innerHTML = '<option value="all">All</option>';
 
-                Object.keys(carData).forEach(key => {
-                    const [brand, model, year] = key.split('/');
-                    if (brand === selectedBrand && model === selectedModel) {
-                        years.add(year);
-                    }
-                });
+    if (selectedModel !== 'all') {
+        const years = new Set();
 
-                // Заповнення списку років (у алфавітному порядку)
-                Array.from(years).sort().forEach(year => {
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    yearSelect.appendChild(option);
-                });
-
-                yearSelect.disabled = false;
-            } else {
-                yearSelect.disabled = true;
+        Object.keys(carData).forEach(key => {
+            const [brand, model, year] = key.split('/');
+            if (brand === selectedBrand && model === selectedModel) {
+                years.add(year);
             }
         });
-    })
-    .catch(error => console.error('Error loading JSON:', error));
+
+        Array.from(years).sort().forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        });
+
+        yearSelect.disabled = false;
+    } else {
+        yearSelect.disabled = true;
+    }
+});
 
 // Функція для фільтрації та виведення даних
 fetchButton.addEventListener('click', () => {
@@ -114,34 +130,52 @@ fetchButton.addEventListener('click', () => {
 
     tableBody.innerHTML = ''; // Очищення таблиці
 
-    let hasData = false; // Перевірка, чи є дані для відображення
+    let hasData = false;
 
     Object.entries(carData).forEach(([key, value]) => {
         const [brand, model, year] = key.split('/');
 
-        // Фільтрація за брендом, моделлю та роком
+        // Пропускаємо записи без фотографій або з "rendered size"
+        if (!value || value.trim() === '' || value.includes('rendered size')) {
+            return;
+        }
+
         if (
             (selectedBrand === 'all' || brand === selectedBrand) &&
             (selectedModel === 'all' || model === selectedModel) &&
             (selectedYear === 'all' || year === selectedYear)
         ) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${brand}</td>
-                <td>${model}</td>
-                <td>${year}</td>
-                <td>${value ? `<img src="${value}" alt="${model}" />` : 'Фотографія ще не додана'}</td>
-            `;
-            tableBody.appendChild(row);
-            hasData = true; // Дані знайдено
+            const cell = document.createElement('td');
+            cell.innerHTML = `<img src="${value}" alt="${model}" class="thumbnail" />`;
+            tableBody.appendChild(cell);
+            hasData = true;
         }
     });
 
-    // Показати таблицю, якщо є дані
     const carTable = document.getElementById('car-table');
     carTable.classList.remove('hidden');
 
     if (!hasData) {
         alert('No data found for the selected filters.');
+    }
+});
+
+// Відкриття модального вікна при натисканні на зображення
+tableBody.addEventListener('click', (event) => {
+    if (event.target.tagName === 'IMG') {
+        modalImage.src = event.target.src;
+        modal.classList.remove('hidden');
+    }
+});
+
+// Закриття модального вікна
+closeModal.addEventListener('click', () => {
+    modal.classList.add('hidden');
+});
+
+// Закриття модального вікна при натисканні поза зображенням
+modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+        modal.classList.add('hidden');
     }
 });
