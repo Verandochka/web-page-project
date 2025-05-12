@@ -149,10 +149,17 @@ fetchButton.addEventListener('click', () => {
     });
 
     // Перевіряємо розмір зображення тільки для відфільтрованих даних
+    let pendingImages = filteredData.length; // Лічильник для асинхронного завантаження
+    if (pendingImages === 0) {
+        alert('No data found for the selected filters.');
+        return;
+    }
+
     filteredData.forEach(([key, value]) => {
         const img = new Image();
         img.src = value;
         img.onload = () => {
+            pendingImages--;
             if (img.width !== 1 || img.height !== 1) {
                 // Додаємо тільки зображення, які не мають розмір 1x1 px
                 const cell = document.createElement('td');
@@ -163,15 +170,24 @@ fetchButton.addEventListener('click', () => {
                 imageList.push(value);
                 hasData = true;
             }
+
+            // Якщо всі зображення оброблено і жодного не додано
+            if (pendingImages === 0 && !hasData) {
+                alert('No data found for the selected filters.');
+            }
+        };
+
+        img.onerror = () => {
+            pendingImages--;
+            // Якщо всі зображення оброблено і жодного не додано
+            if (pendingImages === 0 && !hasData) {
+                alert('No data found for the selected filters.');
+            }
         };
     });
 
     const carTable = document.getElementById('car-table');
     carTable.classList.remove('hidden');
-
-    if (!hasData) {
-        alert('No data found for the selected filters.');
-    }
 });
 
 // Відкриття модального вікна при натисканні на зображення
@@ -197,16 +213,37 @@ modal.addEventListener('click', (event) => {
 
 // Перегортання на попереднє зображення
 prevButton.addEventListener('click', () => {
-    if (imageList.length > 0) {
-        currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
-        modalImage.src = imageList[currentIndex];
-    }
+    showPreviousImage();
 });
 
 // Перегортання на наступне зображення
 nextButton.addEventListener('click', () => {
+    showNextImage();
+});
+
+// Перегортання за допомогою клавіш стрілок
+document.addEventListener('keydown', (event) => {
+    if (modal.style.display === 'flex') {
+        if (event.key === 'ArrowLeft') {
+            showPreviousImage();
+        } else if (event.key === 'ArrowRight') {
+            showNextImage();
+        }
+    }
+});
+
+// Функція для показу попереднього зображення
+function showPreviousImage() {
+    if (imageList.length > 0) {
+        currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+        modalImage.src = imageList[currentIndex];
+    }
+}
+
+// Функція для показу наступного зображення
+function showNextImage() {
     if (imageList.length > 0) {
         currentIndex = (currentIndex + 1) % imageList.length;
         modalImage.src = imageList[currentIndex];
     }
-});
+}

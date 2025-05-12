@@ -209,13 +209,12 @@ td img:hover {
 }
 
 #modal img {
-    max-width: 1000px;
-    max-height: 1000px;
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain; /* Зберігає пропорції, додає відступи */
     border-radius: 8px;
     display: block;
     margin: auto;
-    min-width: 700px;
-    min-height: 700px;
 }
 
 #close-modal {
@@ -246,4 +245,17 @@ td img:hover {
 
 #next-button {
     right: 20px;
+}
+
+/* Стилі для зображень у таблиці */
+.thumbnail {
+    width: 150px; /* Фіксована ширина */
+    height: 150px; /* Фіксована висота */
+    object-fit: cover; /* Зберігає пропорції, обрізає зайве */
+    border-radius: 6px;
+    transition: transform 0.3s ease;
+}
+
+.thumbnail:hover {
+    transform: scale(1.1); /* Збільшення при наведенні */
 }
