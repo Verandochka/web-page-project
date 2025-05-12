@@ -136,27 +136,34 @@ fetchButton.addEventListener('click', () => {
 
     let hasData = false;
 
-    Object.entries(carData).forEach(([key, value]) => {
+    // Фільтруємо дані перед перевіркою розміру зображення
+    const filteredData = Object.entries(carData).filter(([key, value]) => {
         const [brand, model, year] = key.split('/');
-
-        // Пропускаємо записи без фотографій або з "rendered size=1x1 px"
-        if (!value || value.trim() === '' || value.includes('rendered size') || value.includes('1x1')) {
-            return;
-        }
-
-        if (
+        return (
+            value &&
+            value.trim() !== '' &&
             (selectedBrand === 'all' || brand === selectedBrand) &&
             (selectedModel === 'all' || model === selectedModel) &&
             (selectedYear === 'all' || year === selectedYear)
-        ) {
-            const cell = document.createElement('td');
-            cell.innerHTML = `<img src="${value}" alt="${model}" class="thumbnail" />`;
-            tableBody.appendChild(cell);
+        );
+    });
 
-            // Додаємо зображення до списку
-            imageList.push(value);
-            hasData = true;
-        }
+    // Перевіряємо розмір зображення тільки для відфільтрованих даних
+    filteredData.forEach(([key, value]) => {
+        const img = new Image();
+        img.src = value;
+        img.onload = () => {
+            if (img.width !== 1 || img.height !== 1) {
+                // Додаємо тільки зображення, які не мають розмір 1x1 px
+                const cell = document.createElement('td');
+                cell.innerHTML = `<img src="${value}" alt="${key}" class="thumbnail" />`;
+                tableBody.appendChild(cell);
+
+                // Додаємо зображення до списку
+                imageList.push(value);
+                hasData = true;
+            }
+        };
     });
 
     const carTable = document.getElementById('car-table');
