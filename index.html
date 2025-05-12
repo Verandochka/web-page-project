@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="center-container">
-        <div class="filters">
+    <div class="center-container" id="main-container">
+        <div class="filters" id="filters-container">
             <label for="json-select">Select JSON:</label>
             <select id="json-select">
                 <option value="image_sources.json">Image Sources</option>
@@ -32,12 +32,50 @@
         </div>
 
         <button id="fetch-json-btn">Load Filtered Data</button>
+        <button id="user-page-btn">User Page</button>
 
         <table id="car-table" class="hidden">
             <tbody>
                 <!-- Images will be dynamically added here -->
             </tbody>
         </table>
+    </div>
+
+    <div class="center-container hidden" id="user-page-container">
+        <div class="filters">
+            <label for="user-brand-select">Brand:</label>
+            <select id="user-brand-select">
+                <option value="all">All</option>
+            </select>
+
+            <label for="user-model-select">Model:</label>
+            <select id="user-model-select" disabled>
+                <option value="all">All</option>
+            </select>
+
+            <label for="user-year-select">Year:</label>
+            <select id="user-year-select" disabled>
+                <option value="all">All</option>
+            </select>
+        </div>
+
+        <button id="add-car-btn">Add Car</button>
+
+        <div id="add-car-modal" class="hidden">
+            <label for="car-brand-input">Brand:</label>
+            <input type="text" id="car-brand-input" placeholder="Enter brand">
+
+            <label for="car-model-input">Model:</label>
+            <input type="text" id="car-model-input" placeholder="Enter model">
+
+            <label for="car-year-input">Year:</label>
+            <input type="text" id="car-year-input" placeholder="Enter year">
+
+            <label for="car-image-input">Image:</label>
+            <input type="file" id="car-image-input" accept="image/*">
+
+            <button id="save-car-btn">Save</button>
+        </div>
     </div>
 
     <!-- Модальне вікно -->

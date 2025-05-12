@@ -9,10 +9,21 @@ const modalImage = document.getElementById('modal-image');
 const closeModal = document.getElementById('close-modal');
 const prevButton = document.getElementById('prev-button');
 const nextButton = document.getElementById('next-button');
+const userPageBtn = document.getElementById('user-page-btn');
+const mainContainer = document.getElementById('main-container');
+const userPageContainer = document.getElementById('user-page-container');
+const addCarBtn = document.getElementById('add-car-btn');
+const addCarModal = document.getElementById('add-car-modal');
+const saveCarBtn = document.getElementById('save-car-btn');
+const carBrandInput = document.getElementById('car-brand-input');
+const carModelInput = document.getElementById('car-model-input');
+const carYearInput = document.getElementById('car-year-input');
+const carImageInput = document.getElementById('car-image-input');
 
 let carData = {}; // Змінна для збереження JSON-даних
 let imageList = []; // Масив для збереження відфільтрованих зображень
 let currentIndex = 0; // Індекс поточного зображення
+let userCarData = {}; // Зберігає дані, додані користувачем
 
 // Функція для завантаження JSON і оновлення фільтрів
 function loadJsonData(jsonFile) {
@@ -246,4 +257,91 @@ function showNextImage() {
         currentIndex = (currentIndex + 1) % imageList.length;
         modalImage.src = imageList[currentIndex];
     }
+}
+
+// Перехід на сторінку користувачів
+userPageBtn.addEventListener('click', () => {
+    mainContainer.classList.add('hidden');
+    userPageContainer.classList.remove('hidden');
+});
+
+// Відкриття модального вікна для додавання машини
+addCarBtn.addEventListener('click', () => {
+    addCarModal.classList.remove('hidden'); // Показуємо модальне вікно
+});
+
+// Збереження даних машини
+saveCarBtn.addEventListener('click', () => {
+    const brand = carBrandInput.value.trim();
+    const model = carModelInput.value.trim();
+    const year = carYearInput.value.trim();
+    const imageFile = carImageInput.files[0];
+
+    if (!brand || !model || !year || !imageFile) {
+        alert('Please fill in all fields and select an image.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const imageUrl = event.target.result;
+
+        // Додавання даних до userCarData
+        const key = `${brand}/${model}/${year}`;
+        userCarData[key] = imageUrl;
+
+        // Оновлення фільтрів
+        updateUserFilters();
+
+        // Закриття модального вікна
+        addCarModal.classList.add('hidden');
+        carBrandInput.value = '';
+        carModelInput.value = '';
+        carYearInput.value = '';
+        carImageInput.value = '';
+    };
+
+    reader.readAsDataURL(imageFile);
+});
+
+// Оновлення фільтрів на сторінці користувачів
+function updateUserFilters() {
+    const userBrandSelect = document.getElementById('user-brand-select');
+    const userModelSelect = document.getElementById('user-model-select');
+    const userYearSelect = document.getElementById('user-year-select');
+
+    const brands = new Set();
+    const models = new Set();
+    const years = new Set();
+
+    Object.keys(userCarData).forEach((key) => {
+        const [brand, model, year] = key.split('/');
+        brands.add(brand);
+        models.add(model);
+        years.add(year);
+    });
+
+    userBrandSelect.innerHTML = '<option value="all">All</option>';
+    Array.from(brands).sort().forEach((brand) => {
+        const option = document.createElement('option');
+        option.value = brand;
+        option.textContent = brand;
+        userBrandSelect.appendChild(option);
+    });
+
+    userModelSelect.innerHTML = '<option value="all">All</option>';
+    Array.from(models).sort().forEach((model) => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        userModelSelect.appendChild(option);
+    });
+
+    userYearSelect.innerHTML = '<option value="all">All</option>';
+    Array.from(years).sort().forEach((year) => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        userYearSelect.appendChild(option);
+    });
 }
