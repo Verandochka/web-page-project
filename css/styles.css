@@ -209,15 +209,13 @@ td img:hover {
 }
 
 #modal img {
-    max-width: 90%;
-    max-height: 90%;
+    max-width: 1000px;
+    max-height: 1000px;
     border-radius: 8px;
     display: block;
     margin: auto;
-}
-
-#modal.hidden {
-    display: none;
+    min-width: 700px;
+    min-height: 700px;
 }
 
 #close-modal {
@@ -228,4 +226,24 @@ td img:hover {
     color: white;
     cursor: pointer;
     z-index: 1001;
+}
+
+.modal-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1001;
+}
+
+#prev-button {
+    left: 20px;
+}
+
+#next-button {
+    right: 20px;
 }

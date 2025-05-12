@@ -7,8 +7,12 @@ const tableBody = document.querySelector('#car-table tbody');
 const modal = document.getElementById('modal');
 const modalImage = document.getElementById('modal-image');
 const closeModal = document.getElementById('close-modal');
+const prevButton = document.getElementById('prev-button');
+const nextButton = document.getElementById('next-button');
 
 let carData = {}; // Змінна для збереження JSON-даних
+let imageList = []; // Масив для збереження відфільтрованих зображень
+let currentIndex = 0; // Індекс поточного зображення
 
 // Функція для завантаження JSON і оновлення фільтрів
 function loadJsonData(jsonFile) {
@@ -56,19 +60,17 @@ brandSelect.addEventListener('change', () => {
 
     if (selectedBrand !== 'all') {
         const models = new Set();
-        const years = new Map();
+        const years = new Set();
 
         Object.keys(carData).forEach(key => {
             const [brand, model, year] = key.split('/');
             if (brand === selectedBrand) {
                 models.add(model);
-                if (!years.has(year)) {
-                    years.set(year, new Set());
-                }
-                years.get(year).add(model);
+                years.add(year);
             }
         });
 
+        // Оновлення списку моделей
         Array.from(models).sort().forEach(model => {
             const option = document.createElement('option');
             option.value = model;
@@ -76,13 +78,12 @@ brandSelect.addEventListener('change', () => {
             modelSelect.appendChild(option);
         });
 
-        Array.from(years.keys()).sort().forEach(year => {
-            if (years.get(year).size > 0) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelect.appendChild(option);
-            }
+        // Оновлення списку років
+        Array.from(years).sort().forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
         });
 
         modelSelect.disabled = false;
@@ -109,6 +110,7 @@ modelSelect.addEventListener('change', () => {
             }
         });
 
+        // Оновлення списку років
         Array.from(years).sort().forEach(year => {
             const option = document.createElement('option');
             option.value = year;
@@ -129,14 +131,16 @@ fetchButton.addEventListener('click', () => {
     const selectedYear = yearSelect.value;
 
     tableBody.innerHTML = ''; // Очищення таблиці
+    imageList = []; // Очищення списку зображень
+    currentIndex = 0; // Скидання індексу
 
     let hasData = false;
 
     Object.entries(carData).forEach(([key, value]) => {
         const [brand, model, year] = key.split('/');
 
-        // Пропускаємо записи без фотографій або з "rendered size"
-        if (!value || value.trim() === '' || value.includes('rendered size')) {
+        // Пропускаємо записи без фотографій або з "rendered size=1x1 px"
+        if (!value || value.trim() === '' || value.includes('rendered size') || value.includes('1x1')) {
             return;
         }
 
@@ -148,6 +152,9 @@ fetchButton.addEventListener('click', () => {
             const cell = document.createElement('td');
             cell.innerHTML = `<img src="${value}" alt="${model}" class="thumbnail" />`;
             tableBody.appendChild(cell);
+
+            // Додаємо зображення до списку
+            imageList.push(value);
             hasData = true;
         }
     });
@@ -163,19 +170,36 @@ fetchButton.addEventListener('click', () => {
 // Відкриття модального вікна при натисканні на зображення
 tableBody.addEventListener('click', (event) => {
     if (event.target.tagName === 'IMG') {
+        currentIndex = imageList.indexOf(event.target.src); // Встановлюємо індекс поточного зображення
         modalImage.src = event.target.src;
-        modal.classList.remove('hidden');
+        modal.style.display = 'flex'; // Встановлюємо відображення модального вікна
     }
 });
 
 // Закриття модального вікна
 closeModal.addEventListener('click', () => {
-    modal.classList.add('hidden');
+    modal.style.display = 'none'; // Ховаємо модальне вікно
 });
 
 // Закриття модального вікна при натисканні поза зображенням
 modal.addEventListener('click', (event) => {
     if (event.target === modal) {
-        modal.classList.add('hidden');
+        modal.style.display = 'none'; // Ховаємо модальне вікно
+    }
+});
+
+// Перегортання на попереднє зображення
+prevButton.addEventListener('click', () => {
+    if (imageList.length > 0) {
+        currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+        modalImage.src = imageList[currentIndex];
+    }
+});
+
+// Перегортання на наступне зображення
+nextButton.addEventListener('click', () => {
+    if (imageList.length > 0) {
+        currentIndex = (currentIndex + 1) % imageList.length;
+        modalImage.src = imageList[currentIndex];
     }
 });
