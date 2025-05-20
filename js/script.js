@@ -270,6 +270,31 @@ addCarBtn.addEventListener('click', () => {
     addCarModal.classList.remove('hidden'); // Показуємо модальне вікно
 });
 
+// Кнопка повернення на головну
+const backToMainBtn = document.getElementById('back-to-main-btn');
+if (backToMainBtn) {
+    backToMainBtn.addEventListener('click', () => {
+        userPageContainer.classList.add('hidden');
+        mainContainer.classList.remove('hidden');
+    });
+}
+
+// --- LOCAL STORAGE ДЛЯ userCarData ---
+function saveUserCarsToStorage() {
+    localStorage.setItem('userCarData', JSON.stringify(userCarData));
+}
+
+function loadUserCarsFromStorage() {
+    const data = localStorage.getItem('userCarData');
+    if (data) {
+        userCarData = JSON.parse(data);
+        updateUserFilters();
+    }
+}
+
+// Викликаємо при завантаженні сторінки
+loadUserCarsFromStorage();
+
 // Збереження даних машини
 saveCarBtn.addEventListener('click', () => {
     const brand = carBrandInput.value.trim();
@@ -293,6 +318,9 @@ saveCarBtn.addEventListener('click', () => {
         // Оновлення фільтрів
         updateUserFilters();
 
+        // Зберігаємо у localStorage
+        saveUserCarsToStorage();
+
         // Закриття модального вікна
         addCarModal.classList.add('hidden');
         carBrandInput.value = '';
@@ -310,17 +338,17 @@ function updateUserFilters() {
     const userModelSelect = document.getElementById('user-model-select');
     const userYearSelect = document.getElementById('user-year-select');
 
+    // Зберігаємо поточний вибір
+    const prevBrand = userBrandSelect.value;
+    const prevModel = userModelSelect.value;
+    const prevYear = userYearSelect.value;
+
+    // Оновлюємо бренди
     const brands = new Set();
-    const models = new Set();
-    const years = new Set();
-
     Object.keys(userCarData).forEach((key) => {
-        const [brand, model, year] = key.split('/');
+        const [brand] = key.split('/');
         brands.add(brand);
-        models.add(model);
-        years.add(year);
     });
-
     userBrandSelect.innerHTML = '<option value="all">All</option>';
     Array.from(brands).sort().forEach((brand) => {
         const option = document.createElement('option');
@@ -328,7 +356,25 @@ function updateUserFilters() {
         option.textContent = brand;
         userBrandSelect.appendChild(option);
     });
+    userBrandSelect.disabled = brands.size === 0;
+    if (brands.size > 0) userBrandSelect.removeAttribute('disabled');
 
+    updateUserModelsAndYears(userBrandSelect.value, prevModel, prevYear);
+}
+
+function updateUserModelsAndYears(selectedBrand, prevModel, prevYear) {
+    const userBrandSelect = document.getElementById('user-brand-select');
+    const userModelSelect = document.getElementById('user-model-select');
+    selectedBrand = selectedBrand || userBrandSelect.value;
+
+    // Оновлюємо моделі
+    const models = new Set();
+    Object.keys(userCarData).forEach((key) => {
+        const [brand, model] = key.split('/');
+        if (selectedBrand === 'all' || brand === selectedBrand) {
+            models.add(model);
+        }
+    });
     userModelSelect.innerHTML = '<option value="all">All</option>';
     Array.from(models).sort().forEach((model) => {
         const option = document.createElement('option');
@@ -336,7 +382,31 @@ function updateUserFilters() {
         option.textContent = model;
         userModelSelect.appendChild(option);
     });
+    userModelSelect.disabled = models.size === 0;
+    if (models.size > 0) userModelSelect.removeAttribute('disabled');
+    userYearSelect.disabled = years.size === 0;
+    if (years.size > 0) userYearSelect.removeAttribute('disabled');
 
+    updateUserYears(selectedBrand, userModelSelect.value, prevYear);
+}
+
+function updateUserYears(selectedBrand, selectedModel, prevYear) {
+    const userBrandSelect = document.getElementById('user-brand-select');
+    const userModelSelect = document.getElementById('user-model-select');
+    const userYearSelect = document.getElementById('user-year-select');
+    selectedBrand = selectedBrand || userBrandSelect.value;
+    selectedModel = selectedModel || userModelSelect.value;
+
+    const years = new Set();
+    Object.keys(userCarData).forEach((key) => {
+        const [brand, model, year] = key.split('/');
+        if (
+            (selectedBrand === 'all' || brand === selectedBrand) &&
+            (selectedModel === 'all' || model === selectedModel)
+        ) {
+            years.add(year);
+        }
+    });
     userYearSelect.innerHTML = '<option value="all">All</option>';
     Array.from(years).sort().forEach((year) => {
         const option = document.createElement('option');
@@ -344,4 +414,14 @@ function updateUserFilters() {
         option.textContent = year;
         userYearSelect.appendChild(option);
     });
+    userYearSelect.disabled = years.size === 0;
+    if (years.has(prevYear)) userYearSelect.value = prevYear;
 }
+
+// Додаємо обробники подій для фільтрів користувача
+document.getElementById('user-brand-select').addEventListener('change', function() {
+    updateUserModelsAndYears(this.value, null, null);
+});
+document.getElementById('user-model-select').addEventListener('change', function() {
+    updateUserYears(document.getElementById('user-brand-select').value, this.value, null);
+});
